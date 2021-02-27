@@ -2,13 +2,14 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
 import time
 import os
 import datasets
 import utils
 import pickle
 from tqdm import tqdm
-ds = tf.contrib.distributions
+ds = tfp.distributions
 
 
 class CHyVAE:
@@ -38,31 +39,31 @@ class CHyVAE:
         self.sess.run(init_op)
 
     def _encoder(self, x, reuse=False):
-        with tf.variable_scope('encoder', reuse=reuse):
-            z = tf.layers.conv2d(x, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.conv2d(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.conv2d(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.conv2d(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.flatten(z)
-            z = tf.layers.dense(z, self.n_fc_units, activation=tf.nn.relu)
-            mu = tf.layers.dense(z, self.z_dim, activation=None)
-            A = tf.reshape(tf.layers.dense(z, self.z_dim * self.z_dim, activation=None), [-1, self.z_dim, self.z_dim])
-            L = tf.matrix_band_part(A, -1, 0)
-            diag = tf.nn.softplus(tf.matrix_diag_part(A)) + 1e-4
-            L = tf.matrix_set_diag(L, diag)
+        with tf.compat.v1.variable_scope('encoder', reuse=reuse):
+            z = tf.keras.layers.Conv2D(x, 32, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2D(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2D(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2D(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Flatten(z)
+            z = tf.keras.layers.Dense(z, self.n_fc_units, activation=tf.nn.relu)
+            mu = tf.keras.layers.Dense(z, self.z_dim, activation=None)
+            A = tf.reshape(tf.keras.layers.Dense(z, self.z_dim * self.z_dim, activation=None), [-1, self.z_dim, self.z_dim])
+            L = tf.linalg.band_part(A, -1, 0)
+            diag = tf.nn.softplus(tf.linalg.diag_part(A)) + 1e-4
+            L = tf.linalg.set_diag(L, diag)
             L_LT = tf.matmul(L, L, transpose_b=True)
             Sigma = L_LT + 1e-4 * tf.eye(self.z_dim)
             return mu, Sigma
 
     def _decoder(self, z, reuse=False):
-        with tf.variable_scope('decoder', reuse=reuse):
-            z = tf.layers.dense(z, self.n_fc_units, activation=tf.nn.relu)
-            z = tf.layers.dense(z, 4 * 4 * 64, activation=tf.nn.relu)
+        with tf.compat.v1.variable_scope('decoder', reuse=reuse):
+            z = tf.keras.layers.Dense(z, self.n_fc_units, activation=tf.nn.relu)
+            z = tf.keras.layers.Dense(z, 4 * 4 * 64, activation=tf.nn.relu)
             z = tf.reshape(z, [-1, 4, 4, 64])
-            z = tf.layers.conv2d_transpose(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.conv2d_transpose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.layers.conv2d_transpose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            x_logits = tf.layers.conv2d_transpose(z, self.channels, 4, 2, padding='same', activation=None)
+            z = tf.keras.layers.Conv2DTranspose(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2DTranspose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2DTranspose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
+            x_logits = tf.keras.layers.Conv2DTranspose(z, self.channels, 4, 2, padding='same', activation=None)
             return x_logits
 
     def _regularizer(self, z, mu, Sigma, Psi, nu, B):
@@ -72,13 +73,13 @@ class CHyVAE:
         return -\
             0.5 * (nu + 1) * (tf.linalg.logdet(psi_zzT)) +\
             0.5 * tf.linalg.logdet(Sigma) -\
-            0.5 * (nu + B) * tf.trace(tf.matmul(sigma_mumuT_psi, tf.matrix_inverse(psi_zzT)))
+            0.5 * (nu + B) * tf.linalg.trace(tf.matmul(sigma_mumuT_psi, tf.matrix_inverse(psi_zzT)))
 
     def _build_model(self):
         # Model
-        self.x = tf.placeholder(tf.float32, [None, self.im_h, self.im_w, self.channels])
-        self.Psi = tf.placeholder(tf.float32, [self.z_dim, self.z_dim])
-        self.nu = tf.placeholder(tf.float32, ())
+        self.x = tf.compat.v1.placeholder(tf.float32, [None, self.im_h, self.im_w, self.channels])
+        self.Psi = tf.compat.v1.placeholder(tf.float32, [self.z_dim, self.z_dim])
+        self.nu = tf.compat.v1.placeholder(tf.float32, ())
         self.mu, Sigma = self._encoder(self.x)
         mvn = ds.MultivariateNormalFullCovariance(loc=self.mu, covariance_matrix=Sigma)
         z = mvn.sample()
@@ -92,12 +93,12 @@ class CHyVAE:
         self.optim_op = tf.train.AdamOptimizer(1e-4).minimize(self.loss)
 
         # Reconstruction
-        self.x_test = tf.placeholder(tf.float32, [None, self.imsize, self.imsize, self.channels])
+        self.x_test = tf.compat.v1.placeholder(tf.float32, [None, self.imsize, self.imsize, self.channels])
         z_test = self._encoder(self.x_test, reuse=True)[0]
         self.x_recons = tf.nn.sigmoid(self._decoder(z_test, reuse=True))
 
         # Generation
-        self.noise = tf.placeholder(tf.float32, [None, self.z_dim])
+        self.noise = tf.compat.v1.placeholder(tf.float32, [None, self.z_dim])
         self.fake_images = tf.nn.sigmoid(self._decoder(self.noise, reuse=True))
 
     def train(self):
