@@ -27,7 +27,7 @@ class CHyVAE:
         self.n_fc_units = 256
         scale = max(self.nu_np - self.z_dim - 1, 1)
         self.Psi_np = scale * prior_cov
-        self.results_path = '../results/{:s}_z_{:d}_nu_{:d}_run{:d}/'.format('retinal', z_dim, nu, run_no)
+        self.results_path = '../results/retianl_z_{:d}_nu_{:d}_run{:d}/'.format(z_dim, nu, run_no)
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path)
         self._build_model()
