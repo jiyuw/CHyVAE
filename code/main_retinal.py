@@ -88,7 +88,6 @@ def dataloader_create(train, test, root_dir, type='OCT', batch_size=100, shuffle
 
 
 def set_args(parser):
-    parser.add_argument('--dataset', required=True, help='2dshapes | correlated_ellipses')
     parser.add_argument('--batch_size', type=int,
                         default=50, help='input batch size')
     parser.add_argument('--z_dim', type=int, default=20,
