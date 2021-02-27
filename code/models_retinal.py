@@ -23,14 +23,15 @@ class CHyVAE:
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.nu_np = nu
-        self.n_fc_units = 128 if dataset in {'2dshapes', 'correlated_ellipses'} else 256
+        self.n_fc_units = 256
         scale = max(self.nu_np - self.z_dim - 1, 1)
         self.Psi_np = scale * prior_cov
-        self.results_path = '../results/{:s}_z_{:d}_nu_{:d}_run{:d}/'.format(dataset, z_dim, nu, run_no)
+        self.results_path = '../results/{:s}_z_{:d}_nu_{:d}_run{:d}/'.format('retinal', z_dim, nu, run_no)
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path)
         self._build_model()
         config = tf.ConfigProto()
+        config.gpu_options.visible_device_list = '1'
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
         init_op = tf.global_variables_initializer()
