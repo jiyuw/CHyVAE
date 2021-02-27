@@ -30,5 +30,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
     model = CHyVAE(args.dataset, args.z_dim, args.image_size, args.channels, args.batch_size,
-                   args.n_steps, args.nu, np.eye(args.z_dim), args.run)
+                   args.n_epochs, args.nu, np.eye(args.z_dim), args.run)
     model.train()

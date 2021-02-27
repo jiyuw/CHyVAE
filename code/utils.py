@@ -26,7 +26,6 @@ def batch_generator(X, batch_size=100):
 
 # ImageIO Utils
 
-
 def render_reconstructions(x, x_hat, path):
     imsize, channels = x.shape[1], x.shape[3]
     x = np.reshape(x[:50], [5, 10, imsize, imsize, channels])
@@ -100,6 +99,11 @@ def multivariate_lgamma(a, p):
     return 0.5 * p * tf.log(np.pi) + tf.reduce_sum(tf.lgamma(a_reshaped + diff), -1)
 
 # Metric Utils
+def sample_fixed_factor_retinal(x, y, n_clusters=20, size=200):
+    factor = np.random.randint(n_clusters)
+    mask = y[y==factor]
+    x_latent = x[mask]
+    return x_latent, factor
 
 
 def _sample_var_batch(model, scale, B=20):
@@ -110,6 +114,18 @@ def _sample_var_batch(model, scale, B=20):
         zi /= scale
         D = np.argmin(np.var(zi, axis=0, ddof=1))
         f = factor - model.dataset.diff
+        bX.append(D)
+        by.append(f)
+    return np.asarray(bX), np.asarray(by)
+
+
+def _sample_var_batch_retinal(x, y, scale, B=20):
+    bX, by = [], []
+    for b in range(B):
+        zi, factor = sample_fixed_factor_retinal(x, y, size=200)
+        zi /= scale
+        D = np.argmin(np.var(zi, axis=0, ddof=1))
+        f = factor
         bX.append(D)
         by.append(f)
     return np.asarray(bX), np.asarray(by)
@@ -134,3 +150,13 @@ def compute_metric(model):
     tX, ty = _sample_var_batch(model, scale, B=800)
     preds = [np.argmax(V[tx]) for tx in tX]
     return V, np.mean(preds == ty)
+
+
+def compute_metric_retinal(x, y, z_dim, n_clusters = 20):
+    scale = np.std(np.vstack(x), 0)
+    bX, by = _sample_var_batch_retinal(x, y, scale, B=n_clusters*200)
+    V = np.zeros([z_dim, n_clusters])
+    for bx, by in zip(bX, by):
+        V[bx, by] += 1
+    preds = [np.argmax(V[tx]) for tx in x]
+    return np.mean(preds == y)
