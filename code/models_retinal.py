@@ -58,8 +58,8 @@ class CHyVAE:
     def _decoder(self, z, reuse=False):
         with tf.compat.v1.variable_scope('decoder', reuse=reuse):
             z = tf.keras.layers.Dense(self.n_fc_units, activation=tf.nn.relu)(z)
-            z = tf.keras.layers.Dense(4 * 4 * 64, activation=tf.nn.relu)(z)
-            z = tf.reshape(z, [-1, 4, 4, 64])
+            z = tf.keras.layers.Dense(31 * 48 * 64, activation=tf.nn.relu)(z)
+            z = tf.reshape(z, [-1, 31, 48, 64])
             z = tf.keras.layers.Conv2DTranspose(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
             z = tf.keras.layers.Conv2DTranspose(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
             z = tf.keras.layers.Conv2DTranspose(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
