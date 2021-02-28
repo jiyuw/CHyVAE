@@ -158,5 +158,6 @@ def compute_metric_retinal(x, y, z_dim, n_clusters = 20):
     V = np.zeros([z_dim, n_clusters])
     for bx, by in zip(bX, by):
         V[bx, by] += 1
-    preds = [np.argmax(V[tx]) for tx in x]
-    return np.mean(preds == y)
+    tX, ty = _sample_var_batch_retinal(x, y, scale, B=n_clusters * 200)
+    preds = [np.argmax(V[tx]) for tx in tX]
+    return np.mean(preds == ty)
