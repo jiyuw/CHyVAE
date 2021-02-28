@@ -44,7 +44,7 @@ class CHyVAE:
             z = tf.keras.layers.Conv2D(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
             z = tf.keras.layers.Conv2D(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
             z = tf.keras.layers.Conv2D(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
-            z = tf.keras.layers.Flatten(z)
+            z = tf.keras.layers.Flatten()(z)
             z = tf.keras.layers.Dense(self.n_fc_units, activation=tf.nn.relu)(z)
             mu = tf.keras.layers.Dense(self.z_dim, activation=None)(z)
             A = tf.reshape(tf.keras.layers.Dense(self.z_dim * self.z_dim, activation=None)(z), [-1, self.z_dim, self.z_dim])
