@@ -9,6 +9,9 @@ import datasets
 import utils
 import pickle
 from tqdm import tqdm
+import logging
+tf.get_logger().setLevel(logging.ERROR)
+
 ds = tfp.distributions
 
 
@@ -35,7 +38,7 @@ class CHyVAE:
         config.gpu_options.visible_device_list = '1'
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
         self.sess.run(init_op)
 
     def _encoder(self, x, reuse=False):

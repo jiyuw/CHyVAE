@@ -41,7 +41,7 @@ class DC_dataset(Dataset):
             img_name = 'oct-0' + str(middle) + '.png'
         img_path = os.path.join(self.root_dir, pt_dir, 'macOCT', ins_dir, img_name)
         img_pre = cv2.imread(img_path, flags=0)
-        img = np.expand_dims(img_pre, axis=0)
+        img = np.expand_dims(img_pre, axis=2)
 
         # default transform
         img = (img - np.float32(127.5)) / np.float32(127.5)
