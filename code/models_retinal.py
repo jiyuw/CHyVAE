@@ -40,14 +40,14 @@ class CHyVAE:
 
     def _encoder(self, x, reuse=False):
         with tf.compat.v1.variable_scope('encoder', reuse=reuse):
-            z = tf.keras.layers.Conv2D(x, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.keras.layers.Conv2D(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.keras.layers.Conv2D(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.keras.layers.Conv2D(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
+            z = tf.keras.layers.Conv2D(32, 4, 2, padding='same', activation=tf.nn.relu)(x)
+            z = tf.keras.layers.Conv2D(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
+            z = tf.keras.layers.Conv2D(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
+            z = tf.keras.layers.Conv2D(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
             z = tf.keras.layers.Flatten(z)
-            z = tf.keras.layers.Dense(z, self.n_fc_units, activation=tf.nn.relu)
-            mu = tf.keras.layers.Dense(z, self.z_dim, activation=None)
-            A = tf.reshape(tf.keras.layers.Dense(z, self.z_dim * self.z_dim, activation=None), [-1, self.z_dim, self.z_dim])
+            z = tf.keras.layers.Dense(self.n_fc_units, activation=tf.nn.relu)(z)
+            mu = tf.keras.layers.Dense(self.z_dim, activation=None)(z)
+            A = tf.reshape(tf.keras.layers.Dense(self.z_dim * self.z_dim, activation=None)(z), [-1, self.z_dim, self.z_dim])
             L = tf.linalg.band_part(A, -1, 0)
             diag = tf.nn.softplus(tf.linalg.diag_part(A)) + 1e-4
             L = tf.linalg.set_diag(L, diag)
@@ -57,13 +57,13 @@ class CHyVAE:
 
     def _decoder(self, z, reuse=False):
         with tf.compat.v1.variable_scope('decoder', reuse=reuse):
-            z = tf.keras.layers.Dense(z, self.n_fc_units, activation=tf.nn.relu)
-            z = tf.keras.layers.Dense(z, 4 * 4 * 64, activation=tf.nn.relu)
+            z = tf.keras.layers.Dense(self.n_fc_units, activation=tf.nn.relu)(z)
+            z = tf.keras.layers.Dense(4 * 4 * 64, activation=tf.nn.relu)(z)
             z = tf.reshape(z, [-1, 4, 4, 64])
-            z = tf.keras.layers.Conv2DTranspose(z, 64, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.keras.layers.Conv2DTranspose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            z = tf.keras.layers.Conv2DTranspose(z, 32, 4, 2, padding='same', activation=tf.nn.relu)
-            x_logits = tf.keras.layers.Conv2DTranspose(z, self.channels, 4, 2, padding='same', activation=None)
+            z = tf.keras.layers.Conv2DTranspose(64, 4, 2, padding='same', activation=tf.nn.relu)(z)
+            z = tf.keras.layers.Conv2DTranspose(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
+            z = tf.keras.layers.Conv2DTranspose(32, 4, 2, padding='same', activation=tf.nn.relu)(z)
+            x_logits = tf.keras.layers.Conv2DTranspose(self.channels, 4, 2, padding='same', activation=None)(z)
             return x_logits
 
     def _regularizer(self, z, mu, Sigma, Psi, nu, B):
