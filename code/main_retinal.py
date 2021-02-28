@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import tensorflow as tf
-tf.get_logger().setLevel('INFO')
+tf.get_logger().setLevel('ERROR')
 
 
 class DC_dataset(Dataset):
@@ -46,7 +46,7 @@ class DC_dataset(Dataset):
         img = np.expand_dims(img_pre, axis=2)
 
         # default transform
-        img = (img - np.float32(127.5)) / np.float32(127.5)
+        img = img / np.float32(255)
         img = torch.tensor(img)
         if self.transform:
             img = self.transform(img)
