@@ -9,9 +9,8 @@ import pandas as pd
 import cv2
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-import logging
 import tensorflow as tf
-tf.get_logger().setLevel(logging.ERROR)
+tf.get_logger().setLevel('INFO')
 
 
 class DC_dataset(Dataset):

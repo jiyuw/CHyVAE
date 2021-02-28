@@ -9,8 +9,7 @@ import datasets
 import utils
 import pickle
 from tqdm import tqdm
-import logging
-tf.get_logger().setLevel(logging.ERROR)
+tf.get_logger().setLevel('INFO')
 
 ds = tfp.distributions
 
