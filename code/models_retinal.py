@@ -93,7 +93,7 @@ class CHyVAE:
         self.optim_op = tf.train.AdamOptimizer(1e-4).minimize(self.loss)
 
         # Reconstruction
-        self.x_test = tf.compat.v1.placeholder(tf.float32, [None, self.imsize, self.imsize, self.channels])
+        self.x_test = tf.compat.v1.placeholder(tf.float32, [None, self.im_h, self.im_w, self.channels])
         z_test = self._encoder(self.x_test, reuse=True)[0]
         self.x_recons = tf.nn.sigmoid(self._decoder(z_test, reuse=True))
 
